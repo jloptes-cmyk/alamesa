@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f6efe5" />
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="A la mesa" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <title>A la mesa</title>
+  <style>
+    :root{
+      --bg:#f6efe5;--card:#fffdf9;--text:#2d2a26;--muted:#746d64;--line:#e8ded1;
+      --meal:#d9825b;--dinner:#6f8798;--left:#e6b95a;--done:#6f9b79;--danger:#b95858;
+      --shadow:0 10px 28px rgba(82,66,47,.08);--r:20px;
+    }
+    *{box-sizing:border-box} body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text)}
+    button,input,select,textarea{font:inherit} button{cursor:pointer}
+    .app{max-width:980px;margin:auto;min-height:100vh;padding:18px 16px 90px}
+    header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+    .brand h1{margin:0;font-size:28px}.brand p{margin:3px 0 0;color:var(--muted);font-size:14px}
+    .status{font-size:12px;color:var(--muted);background:rgba(255,255,255,.65);padding:8px 10px;border-radius:999px}
+    .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+    .btn{border:0;border-radius:14px;padding:11px 14px;background:#fff;color:var(--text);box-shadow:var(--shadow)}
+    .btn.primary{background:var(--text);color:#fff}.btn.soft{background:#efe5d8}.btn.danger{background:#f8e0e0;color:var(--danger)}
+    .weeknav{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;gap:8px;margin-bottom:14px}.weeknav h2{text-align:center;margin:0;font-size:20px}
+    .days{display:grid;gap:12px}.day{background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.75);border-radius:24px;padding:14px;box-shadow:var(--shadow)}
+    .dayhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.dayhead strong{text-transform:capitalize}.today{outline:2px solid #d2b89a}
+    .slots{display:grid;grid-template-columns:1fr;gap:12px}.slot{min-height:118px;border:1px dashed var(--line);border-radius:18px;padding:10px;background:var(--card)}
+    .slotlabel{font-size:11px;font-weight:800;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:8px}.slot.meal .slotlabel{color:var(--meal)}.slot.dinner .slotlabel{color:var(--dinner)}
+    .menu-card{border-radius:15px;padding:10px;background:#fff;border:1px solid var(--line)}.menu-card.done{opacity:.65}.menu-card h3{margin:0 0 6px;font-size:18px}.meta{font-size:12px;color:var(--muted)}
+    .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.tag{font-size:11px;border-radius:999px;padding:4px 7px;background:#f2ece4}.tag.done{background:#e1efe4;color:#3f6d48}.tag.left{background:#fff2c8;color:#745b16}
+    .empty{display:flex;min-height:78px;align-items:center;justify-content:center;color:var(--muted);font-size:14px}
+    .nav{position:fixed;left:0;right:0;bottom:0;background:rgba(255,253,249,.95);backdrop-filter:blur(12px);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);padding:8px max(8px,env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));z-index:20}
+    .nav button{border:0;background:transparent;padding:10px 4px;color:var(--muted);border-radius:12px}.nav button.active{background:#eee3d5;color:var(--text);font-weight:700}
+    .panel{display:none}.panel.active{display:block}.section-title{display:flex;justify-content:space-between;align-items:center;margin:8px 0 12px}.section-title h2{margin:0}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}.library-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;box-shadow:var(--shadow)}
+    .library-card h3{margin:0 0 6px}.library-card .actions{display:flex;gap:6px;margin-top:12px}.small{padding:8px 10px;font-size:13px;box-shadow:none;border:1px solid var(--line)}
+    .leftover{background:#fff9e9;border:1px solid #edd89c;border-radius:18px;padding:14px}.shop-item{display:flex;align-items:center;gap:10px;background:var(--card);padding:12px;border-radius:14px;border:1px solid var(--line)}
+    .ingredient-entry{display:grid;grid-template-columns:1fr auto;gap:8px}.ingredient-list{display:grid;gap:7px;margin-top:8px}.ingredient-item{display:flex;align-items:center;gap:8px;background:#f7f1e9;border:1px solid var(--line);border-radius:12px;padding:8px 10px}.ingredient-item span{flex:1}.ingredient-item button{border:0;background:transparent;color:var(--danger);font-weight:800;font-size:18px;padding:0 4px}
+    dialog{border:0;border-radius:22px;padding:0;max-width:520px;width:calc(100% - 28px);box-shadow:0 30px 80px rgba(0,0,0,.25)}dialog::backdrop{background:rgba(35,31,27,.45)}
+    .modal{padding:18px}.modal h2{margin:0 0 14px}.form{display:grid;gap:12px}.field{display:grid;gap:6px}.field label{font-size:13px;font-weight:700}.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px;background:#fff}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+    .toast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-120%);background:#2d2a26;color:#fff;padding:10px 14px;border-radius:999px;transition:.25s;z-index:50}.toast.show{transform:translateX(-50%) translateY(0)}
+
+    html.small-device body{font-size:21px}
+    html.small-device .app{padding:14px 12px 110px;max-width:100%}
+    html.small-device header{align-items:flex-start;gap:10px}
+    html.small-device .brand h1{font-size:36px;line-height:1.1}
+    html.small-device .brand p{font-size:18px;margin-top:6px}
+    html.small-device .status{font-size:15px;padding:10px 12px}
+    html.small-device .toolbar{display:grid;grid-template-columns:1fr;gap:10px}
+    html.small-device .toolbar .btn{width:100%;padding:16px 14px;font-size:20px;font-weight:700}
+    html.small-device .weeknav{grid-template-columns:52px 1fr 52px;margin:18px 0}
+    html.small-device .weeknav h2{font-size:26px}
+    html.small-device .weeknav .btn{padding:14px 10px;font-size:28px}
+    html.small-device .slots{grid-template-columns:1fr}
+    html.small-device .day{padding:16px;border-radius:22px}
+    html.small-device .dayhead{font-size:22px;margin-bottom:14px}
+    html.small-device .slot{min-height:120px;padding:16px}
+    html.small-device .slotlabel{font-size:16px;margin-bottom:12px}
+    html.small-device .empty{min-height:88px;font-size:20px}
+    html.small-device .menu-card h3{font-size:23px}
+    html.small-device .meta{font-size:17px}
+    html.small-device .nav button{font-size:18px;padding:15px 4px}
+    html.small-device .btn{font-size:19px}
+    html.small-device .section-title h2{font-size:32px}
+    html.small-device .field label{font-size:18px}
+    html.small-device .field input,html.small-device .field select,html.small-device .field textarea{font-size:19px;padding:15px}
+    @media(max-width:900px), (max-device-width:900px){
+      body{font-size:21px}
+      .app{padding:14px 12px 104px;max-width:100%}
+      header{align-items:flex-start;margin-bottom:16px}
+      .brand h1{font-size:36px;line-height:1.1}
+      .brand p{font-size:18px;margin-top:6px}
+      .status{font-size:15px;padding:10px 12px;white-space:nowrap}
+      .toolbar{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+      .toolbar .btn{width:100%;padding:16px 14px;font-size:19px;font-weight:650}
+      .toolbar .btn.primary{grid-column:1/-1}
+      .weeknav{grid-template-columns:52px 1fr 52px;margin:10px 0 16px}
+      .weeknav h2{font-size:25px}
+      .weeknav .btn{padding:14px 10px;font-size:28px}
+      .days{gap:14px}
+      .day{padding:14px;border-radius:22px}
+      .dayhead{font-size:21px;margin-bottom:14px}
+      .slots{grid-template-columns:1fr;gap:12px}
+      .slot{min-height:118px;padding:13px;border-radius:18px}
+      .slotlabel{font-size:15px;margin-bottom:12px}
+      .empty{min-height:92px;font-size:19px}
+      .menu-card{padding:14px}
+      .menu-card h3{font-size:22px}
+      .meta{font-size:17px}
+      .tag{font-size:15px;padding:7px 10px}
+      .nav{padding-top:10px}
+      .nav button{font-size:17px;padding:14px 4px}
+      .section-title h2{font-size:32px}
+      .grid{grid-template-columns:1fr}
+      .library-card,.leftover,.shop-item{font-size:19px}
+      .btn{font-size:19px}
+      dialog{width:calc(100% - 20px)}
+      .modal{padding:20px}
+      .modal h2{font-size:30px}
+      .row{grid-template-columns:1fr}
+      .field label{font-size:18px}
+      .field input,.field select,.field textarea{font-size:19px;padding:15px}
+      .modal-actions{flex-wrap:wrap}
+      .modal-actions .btn{flex:1;min-width:120px;padding:13px}
+    }
+    @media(max-width:430px), (max-device-width:430px){
+      header{display:grid;grid-template-columns:1fr auto;gap:8px}
+      .brand h1{font-size:34px}
+      .brand p{font-size:17px}
+      .status{font-size:13px;max-width:170px;white-space:normal;text-align:center}
+      .toolbar{grid-template-columns:1fr 1fr}
+      .toolbar .btn.primary{grid-column:1/-1}
+      .day{padding:12px}
+      .slot{min-height:112px}
+    }
+
+    /* Tipografía móvil extragrande */
+    html.small-device body{font-size:34px}
+    html.small-device .app{padding:20px 16px 150px}
+    html.small-device header{display:grid;grid-template-columns:1fr;gap:14px}
+    html.small-device .brand h1{font-size:58px;line-height:1.05}
+    html.small-device .brand p{font-size:30px;line-height:1.25}
+    html.small-device .status{font-size:24px;padding:14px 18px;justify-self:start}
+    html.small-device .toolbar{grid-template-columns:1fr;gap:14px}
+    html.small-device .toolbar .btn{font-size:32px;padding:22px 18px;border-radius:18px}
+    html.small-device .weeknav{grid-template-columns:70px 1fr 70px;gap:12px;margin:24px 0}
+    html.small-device .weeknav h2{font-size:38px;line-height:1.15}
+    html.small-device .weeknav .btn{font-size:46px;padding:18px 10px}
+    html.small-device .days{gap:20px}
+    html.small-device .day{padding:20px;border-radius:28px}
+    html.small-device .dayhead{font-size:34px;margin-bottom:18px}
+    html.small-device .slots{gap:18px}
+    html.small-device .slot{min-height:210px;padding:22px;border-radius:24px}
+    html.small-device .slotlabel{font-size:26px;margin-bottom:18px}
+    html.small-device .empty{min-height:150px;font-size:32px}
+    html.small-device .menu-card{padding:20px}
+    html.small-device .menu-card h3{font-size:36px;line-height:1.15}
+    html.small-device .meta{font-size:28px}
+    html.small-device .tag{font-size:24px;padding:10px 14px}
+    html.small-device .nav{padding-top:14px}
+    html.small-device .nav button{font-size:27px;padding:20px 4px}
+    html.small-device .section-title h2{font-size:48px}
+    html.small-device .library-card,html.small-device .leftover,html.small-device .shop-item{font-size:30px;padding:20px}
+    html.small-device .btn{font-size:30px;padding:18px 20px}
+    html.small-device .small{font-size:26px;padding:14px 16px}
+    html.small-device dialog{width:calc(100% - 16px);max-width:none}
+    html.small-device .modal{padding:24px}
+    html.small-device .modal h2{font-size:44px}
+    html.small-device .field label{font-size:30px}
+    html.small-device .field input,html.small-device .field select,html.small-device .field textarea{font-size:30px;padding:20px}
+    html.small-device .ingredient-item{font-size:28px;padding:16px}
+    html.small-device .ingredient-item button{font-size:34px}
+
+    @media(max-width:900px), (max-device-width:900px){
+      body{font-size:34px}
+      .app{padding:20px 16px 150px}
+      header{display:grid;grid-template-columns:1fr;gap:14px}
+      .brand h1{font-size:58px;line-height:1.05}
+      .brand p{font-size:30px;line-height:1.25}
+      .status{font-size:24px;padding:14px 18px;justify-self:start;white-space:normal}
+      .toolbar{grid-template-columns:1fr;gap:14px}
+      .toolbar .btn,.toolbar .btn.primary{grid-column:auto;font-size:32px;padding:22px 18px;border-radius:18px}
+      .weeknav{grid-template-columns:70px 1fr 70px;gap:12px;margin:24px 0}
+      .weeknav h2{font-size:38px;line-height:1.15}
+      .weeknav .btn{font-size:46px;padding:18px 10px}
+      .days{gap:20px}
+      .day{padding:20px;border-radius:28px}
+      .dayhead{font-size:34px;margin-bottom:18px}
+      .slots{gap:18px}
+      .slot{min-height:210px;padding:22px;border-radius:24px}
+      .slotlabel{font-size:26px;margin-bottom:18px}
+      .empty{min-height:150px;font-size:32px}
+      .menu-card{padding:20px}
+      .menu-card h3{font-size:36px;line-height:1.15}
+      .meta{font-size:28px}
+      .tag{font-size:24px;padding:10px 14px}
+      .nav{padding-top:14px}
+      .nav button{font-size:27px;padding:20px 4px}
+      .section-title h2{font-size:48px}
+      .library-card,.leftover,.shop-item{font-size:30px;padding:20px}
+      .btn{font-size:30px;padding:18px 20px}
+      .small{font-size:26px;padding:14px 16px}
+      dialog{width:calc(100% - 16px);max-width:none}
+      .modal{padding:24px}
+      .modal h2{font-size:44px}
+      .field label{font-size:30px}
+      .field input,.field select,.field textarea{font-size:30px;padding:20px}
+      .ingredient-item{font-size:28px;padding:16px}
+      .ingredient-item button{font-size:34px}
+    }
+  </style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<div class="app">
+  <header><div class="brand"><h1>A la mesa</h1><p>Tu menú familiar, siempre al día</p></div><div class="status" id="saveStatus">Guardado</div></header>
+
+  <section id="weekPanel" class="panel active">
+    <div class="toolbar"><button class="btn primary" id="addMenuBtn">+ Nuevo menú</button><button class="btn" id="refreshBtn">Actualizar</button><button class="btn" id="saveBtn">Guardar</button></div>
+    <div class="weeknav"><button class="btn" id="prevWeek">‹</button><h2 id="weekTitle"></h2><button class="btn" id="nextWeek">›</button></div>
+    <div class="days" id="days"></div>
+  </section>
+
+  <section id="menusPanel" class="panel">
+    <div class="section-title"><h2>Menús</h2><button class="btn primary" id="addMenuBtn2">+ Añadir</button></div>
+    <div class="grid" id="menuLibrary"></div>
+  </section>
+
+  <section id="leftoversPanel" class="panel">
+    <div class="section-title"><h2>Sobras</h2></div>
+    <div class="grid" id="leftoversList"></div>
+  </section>
+
+  <section id="shopPanel" class="panel">
+    <div class="section-title"><h2>Compra</h2><button class="btn" id="addShopBtn">+ Producto</button></div>
+    <div class="grid" id="shopList"></div>
+  </section>
+</div>
+
+<nav class="nav">
+  <button class="active" data-panel="weekPanel">Semana</button><button data-panel="menusPanel">Menús</button><button data-panel="leftoversPanel">Sobras</button><button data-panel="shopPanel">Compra</button>
+</nav>
+
+<dialog id="menuDialog"><form method="dialog" class="modal" id="menuForm"><h2 id="menuDialogTitle">Nuevo menú</h2><div class="form">
+  <input type="hidden" id="menuId"><div class="field"><label>Nombre</label><input id="menuName" required placeholder="Ej. Albóndigas con arroz"></div>
+  <div class="row"><div class="field"><label>Tipo</label><select id="menuType"><option value="both">Comida y cena</option><option value="meal">Solo comida</option><option value="dinner">Solo cena</option></select></div><div class="field"><label>Tiempo</label><input id="menuTime" placeholder="30 min"></div></div>
+  <div class="field"><label>Ingredientes</label><div class="ingredient-entry"><input id="ingredientInput" placeholder="Ej. Tomates"><button class="btn soft" type="button" id="addIngredientBtn">Añadir</button></div><div class="ingredient-list" id="ingredientList"></div></div>
+  <div class="field"><label>Notas</label><textarea id="menuNotes" rows="3" placeholder="Acompañamiento, preparación, observaciones..."></textarea></div>
+</div><div class="modal-actions"><button class="btn" type="button" id="cancelMenuBtn">Cancelar</button><button class="btn primary" id="menuSubmit" type="submit">Guardar</button></div></form></dialog>
+
+<dialog id="slotDialog"><div class="modal"><h2>Elegir menú</h2><div id="slotChoices" class="grid"></div><div class="modal-actions"><button class="btn" onclick="slotDialog.close()">Cancelar</button></div></div></dialog>
+<dialog id="actionDialog"><div class="modal"><h2 id="actionTitle">Menú</h2><div class="form" id="actionButtons"></div><div class="modal-actions"><button class="btn" onclick="actionDialog.close()">Cerrar</button></div></div></dialog>
+<dialog id="leftoverDialog"><form method="dialog" class="modal" id="leftoverForm"><h2>Registrar sobras</h2><div class="form"><div class="field"><label>Raciones</label><input id="leftoverServings" type="number" min="1" value="1"></div><div class="field"><label>Consumir antes de</label><input id="leftoverUntil" type="date"></div></div><div class="modal-actions"><button class="btn" value="cancel">Cancelar</button><button class="btn primary" value="default">Guardar</button></div></form></dialog>
+<dialog id="shopDialog"><form method="dialog" class="modal" id="shopForm"><h2>Añadir producto</h2><div class="field"><label>Producto</label><input id="shopName" required placeholder="Ej. Tomates"></div><div class="modal-actions"><button class="btn" value="cancel">Cancelar</button><button class="btn primary" value="default">Añadir</button></div></form></dialog>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const KEY='a-la-mesa-v1';
+const API_URL='https://script.google.com/macros/s/AKfycbyLr8kf7iwpyHsPXoQXEPdpQIgH9kmzyvTfFfL885MiIxXoIx4JhddlDiwWLzibndZHHQ/exec';
+let remoteSaveTimer=null;
+const defaultState={menus:[
+{id:crypto.randomUUID(),name:'Pizza casera',type:'dinner',time:'45 min',notes:'Viernes noche'},
+{id:crypto.randomUUID(),name:'Quiche de verduras',type:'both',time:'50 min',notes:''},
+{id:crypto.randomUUID(),name:'Albóndigas de pollo con arroz',type:'meal',time:'40 min',notes:''}
+],plans:{},leftovers:[],shop:[],weekOffset:0,updatedAt:Date.now()};
+let state=load(); let selectedSlot=null, selectedPlan=null, selectedLeftoverSource=null; let draftIngredients=[];
+state.menus=state.menus.map(m=>({...m,ingredients:Array.isArray(m.ingredients)?m.ingredients:[]}));
+state.shop=Array.isArray(state.shop)?state.shop:[];
+state.shopDismissed=Array.isArray(state.shopDismissed)?state.shopDismissed:[];
+state.shop=state.shop.filter(i=>i.source!=='menu'&&i.source!=='auto');
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||structuredClone(defaultState)}catch{return structuredClone(defaultState)}}
+function normalizeState(data){
+ const next={...structuredClone(defaultState),...(data||{})};
+ next.menus=Array.isArray(next.menus)?next.menus:[];
+ next.plans=next.plans&&typeof next.plans==='object'?next.plans:{};
+ Object.keys(next.plans).forEach(k=>{const value=next.plans[k];next.plans[k]=Array.isArray(value)?value:(value?[value]:[])});
+ next.leftovers=Array.isArray(next.leftovers)?next.leftovers:[];
+ next.shop=Array.isArray(next.shop)?next.shop:[];
+ next.shopDismissed=Array.isArray(next.shopDismissed)?next.shopDismissed:[];
+ next.menus=next.menus.map(m=>({...m,ingredients:Array.isArray(m.ingredients)?m.ingredients:[]}));
+ return next;
+}
+function persist(msg='Guardado',sync=true){
+ state.updatedAt=Date.now();
+ localStorage.setItem(KEY,JSON.stringify(state));
+ $('#saveStatus').textContent=sync?'Guardando…':msg;
+ if(sync){
+  clearTimeout(remoteSaveTimer);
+  remoteSaveTimer=setTimeout(()=>saveRemote(msg),450);
+ }else toast(msg);
+}
+async function saveRemote(msg='Guardado en todos los dispositivos'){
+ clearTimeout(remoteSaveTimer);
+ $('#saveStatus').textContent='Guardando online…';
+ try{
+  const response=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({data:state})});
+  if(!response.ok)throw new Error('HTTP '+response.status);
+  const result=await response.json();
+  if(!result.ok)throw new Error(result.error||'No se pudo guardar');
+  if(result.updatedAt)state.updatedAt=result.updatedAt;
+  localStorage.setItem(KEY,JSON.stringify(state));
+  $('#saveStatus').textContent='Guardado online';
+  toast(msg);
+ }catch(error){
+  console.error(error);
+  $('#saveStatus').textContent='Guardado solo en este dispositivo';
+  toast('Sin conexión: se guardó una copia local');
+ }
+}
+async function loadRemote(showMessage=true){
+ $('#saveStatus').textContent='Actualizando…';
+ try{
+  const response=await fetch(API_URL+'?t='+Date.now(),{cache:'no-store'});
+  if(!response.ok)throw new Error('HTTP '+response.status);
+  const result=await response.json();
+  if(!result.ok)throw new Error(result.error||'No se pudieron cargar los datos');
+  const online=normalizeState(result.data);
+  const localUpdated=Number(state.updatedAt||0), onlineUpdated=Number(online.updatedAt||0);
+  if(onlineUpdated>0 || localUpdated===0){state=online;localStorage.setItem(KEY,JSON.stringify(state));}
+  $('#saveStatus').textContent='Datos compartidos al día';
+  renderAll();
+  if(showMessage)toast('Datos actualizados desde Google');
+ }catch(error){
+  console.error(error);
+  $('#saveStatus').textContent='Usando copia local';
+  renderAll();
+  if(showMessage)toast('No se pudo conectar con Google');
+ }
+}
+function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),1700)}
+function mondayOf(offset=0){const d=new Date();d.setHours(12,0,0,0);const day=(d.getDay()+6)%7;d.setDate(d.getDate()-day+offset*7);return d}
+function keyFor(date,slot){return date.toISOString().slice(0,10)+'_'+slot}
+function fmtDate(d){return d.toLocaleDateString('es-ES',{day:'numeric',month:'short'})}
+function normalizeIngredient(name){return name.trim().toLocaleLowerCase('es-ES')}
+function currentWeekPlanEntries(){
+ const start=mondayOf(state.weekOffset),end=new Date(start);end.setDate(end.getDate()+7);
+ return Object.entries(state.plans).filter(([k])=>{const datePart=k.slice(0,10);const d=new Date(datePart+'T12:00:00');return d>=start&&d<end});
+}
+function automaticShoppingItems(){
+ const grouped=new Map();
+ currentWeekPlanEntries().forEach(([,plans])=>{
+  (Array.isArray(plans)?plans:[plans]).forEach(plan=>{
+   const menu=state.menus.find(m=>m.id===plan.menuId);if(!menu)return;
+   (menu.ingredients||[]).forEach(name=>{
+    const key=normalizeIngredient(name);if(!key)return;
+    if(!grouped.has(key))grouped.set(key,{name,count:0,menus:new Set()});
+    const item=grouped.get(key);item.count++;item.menus.add(menu.name);
+   });
+  });
+ });
+ return [...grouped.entries()].filter(([key])=>!state.shopDismissed.includes(key)).map(([key,item])=>({id:'auto:'+key,key,name:item.name,count:item.count,menus:[...item.menus],source:'auto',done:false}));
+}
+function manualShoppingItems(){return state.shop.filter(i=>i.source!=='menu'&&i.source!=='auto')}
+function cleanupDismissedIngredients(){
+ const needed=new Set();
+ currentWeekPlanEntries().forEach(([,plans])=>{(Array.isArray(plans)?plans:[plans]).forEach(plan=>{const menu=state.menus.find(m=>m.id===plan.menuId);(menu?.ingredients||[]).forEach(name=>needed.add(normalizeIngredient(name)));});});
+ state.shopDismissed=state.shopDismissed.filter(key=>needed.has(key));
+}
+function renderAll(){cleanupDismissedIngredients();renderWeek();renderMenus();renderLeftovers();renderShop();}
+function renderWeek(){const start=mondayOf(state.weekOffset);const end=new Date(start);end.setDate(end.getDate()+6);$('#weekTitle').textContent=`${fmtDate(start)} – ${fmtDate(end)}`;const wrap=$('#days');wrap.innerHTML='';
+ for(let i=0;i<7;i++){const d=new Date(start);d.setDate(d.getDate()+i);const day=document.createElement('article');day.className='day'+(new Date().toDateString()===d.toDateString()?' today':'');day.innerHTML=`<div class="dayhead"><strong>${d.toLocaleDateString('es-ES',{weekday:'long'})}</strong><span>${fmtDate(d)}</span></div><div class="slots"><div class="slot meal" data-date="${d.toISOString()}" data-slot="meal"><div class="slotlabel">Comida</div>${slotHtml(d,'meal')}</div><div class="slot dinner" data-date="${d.toISOString()}" data-slot="dinner"><div class="slotlabel">Cena</div>${slotHtml(d,'dinner')}</div></div>`;wrap.appendChild(day)}
+ $$('.slot').forEach(el=>el.addEventListener('click',e=>{if(e.target.closest('.menu-card')) return;openSlot(el.dataset.date,el.dataset.slot)}));
+ $$('.menu-card').forEach(el=>el.addEventListener('click',()=>openActions(el.dataset.key,Number(el.dataset.index))));
+}
+function slotHtml(date,slot){
+ const k=keyFor(date,slot),plans=Array.isArray(state.plans[k])?state.plans[k]:(state.plans[k]?[state.plans[k]]:[]);
+ const cards=plans.map((p,index)=>{const m=state.menus.find(x=>x.id===p.menuId);if(!m)return `<div class="menu-card" data-key="${k}" data-index="${index}"><h3>Menú no disponible</h3></div>`;return `<div class="menu-card ${p.done?'done':''}" data-key="${k}" data-index="${index}"><h3>${m.name}</h3><div class="meta">${m.time||'Sin tiempo indicado'}</div><div class="tags">${p.done?'<span class="tag done">✓ Comido</span>':'<span class="tag">Previsto</span>'}${p.movedFrom?'<span class="tag">Movido</span>':''}${p.hasLeftovers?'<span class="tag left">Sobras</span>':''}</div></div>`}).join('');
+ return `${cards}<div class="empty add-more">+ Añadir menú</div>`;
+}
+function openSlot(dateIso,slot){selectedSlot={date:new Date(dateIso),slot};const choices=$('#slotChoices');choices.innerHTML='';state.menus.filter(m=>m.type==='both'||m.type===slot).forEach(m=>{const b=document.createElement('button');b.className='btn';b.textContent=m.name;b.onclick=()=>{const k=keyFor(selectedSlot.date,slot);if(!Array.isArray(state.plans[k]))state.plans[k]=state.plans[k]?[state.plans[k]]:[];state.plans[k].push({menuId:m.id,done:false});persist();slotDialog.close();renderAll()};choices.appendChild(b)});if(!choices.children.length)choices.innerHTML='<p>No hay menús compatibles.</p>';slotDialog.showModal()}
+function openActions(k,index){selectedPlan={k,index};const plans=Array.isArray(state.plans[k])?state.plans[k]:[];const p=plans[index];if(!p)return;const m=state.menus.find(x=>x.id===p.menuId);if(!m)return;$('#actionTitle').textContent=m.name;const box=$('#actionButtons');box.innerHTML='';
+ const add=(t,fn,cls='btn')=>{const b=document.createElement('button');b.className=cls;b.textContent=t;b.onclick=fn;box.appendChild(b)};
+ add(p.done?'Marcar como pendiente':'✓ Lo hemos comido',()=>{p.done=!p.done;persist();actionDialog.close();renderAll()},'btn primary');
+ add('Hemos comido otro menú',()=>{actionDialog.close();const split=k.lastIndexOf('_');const date=k.slice(0,split),slot=k.slice(split+1);openSwap(date,slot,p,index)});
+ add('Registrar sobras',()=>{selectedLeftoverSource={k,index,menuId:p.menuId};$('#leftoverUntil').value=new Date(Date.now()+3*864e5).toISOString().slice(0,10);actionDialog.close();leftoverDialog.showModal()});
+ add('Quitar de la semana',()=>{plans.splice(index,1);if(!plans.length)delete state.plans[k];persist();actionDialog.close();renderAll()},'btn danger');actionDialog.showModal()}
+function openSwap(date,slot,current,currentIndex){selectedSlot={date:new Date(date+'T12:00:00'),slot};const choices=$('#slotChoices');choices.innerHTML='';state.menus.filter(m=>m.id!==current.menuId&&(m.type==='both'||m.type===slot)).forEach(m=>{const b=document.createElement('button');b.className='btn';b.textContent=m.name;b.onclick=()=>{const k=date+'_'+slot,old=current.menuId;const plans=Array.isArray(state.plans[k])?state.plans[k]:[];plans[currentIndex]={...current,menuId:m.id,done:true,movedFrom:false};let futureFound=null;for(const [kk,listRaw] of Object.entries(state.plans)){const list=Array.isArray(listRaw)?listRaw:[listRaw];const idx=list.findIndex(v=>kk!==k&&v.menuId===m.id&&!v.done);if(idx>=0){futureFound={kk,list,idx};break}}if(futureFound){futureFound.list[futureFound.idx]={...futureFound.list[futureFound.idx],menuId:old,movedFrom:date}}else{plans[currentIndex].replacedMenuId=old}persist('Semana reorganizada');slotDialog.close();renderAll()};choices.appendChild(b)});slotDialog.showModal()}
+function renderMenus(){const el=$('#menuLibrary');el.innerHTML='';state.menus.forEach(m=>{const c=document.createElement('article');c.className='library-card';const ingredientText=(m.ingredients||[]).length?`<div class="meta" style="margin-top:8px">Ingredientes: ${m.ingredients.join(', ')}</div>`:'';c.innerHTML=`<h3>${m.name}</h3><div class="meta">${m.type==='both'?'Comida y cena':m.type==='meal'?'Comida':'Cena'} · ${m.time||'Sin tiempo'}</div>${ingredientText}<p>${m.notes||''}</p><div class="actions"><button class="btn small edit">Editar</button><button class="btn small danger delete">Eliminar</button></div>`;c.querySelector('.edit').onclick=()=>editMenu(m.id);c.querySelector('.delete').onclick=()=>{if(confirm(`¿Seguro que quieres borrar "${m.name}"? También se quitará de los días en los que esté colocado.`)){state.menus=state.menus.filter(x=>x.id!==m.id);Object.keys(state.plans).forEach(k=>{const list=(Array.isArray(state.plans[k])?state.plans[k]:[state.plans[k]]).filter(p=>p.menuId!==m.id);if(list.length)state.plans[k]=list;else delete state.plans[k]});persist('Menú eliminado');renderAll()}};el.appendChild(c)});if(!state.menus.length)el.innerHTML='<p>No hay menús todavía.</p>'}
+function renderLeftovers(){const el=$('#leftoversList');el.innerHTML='';state.leftovers.forEach(l=>{const m=state.menus.find(x=>x.id===l.menuId);const c=document.createElement('article');c.className='leftover';c.innerHTML=`<h3>Sobras de ${m?.name||'menú'}</h3><p>${l.servings} ración(es)</p><div class="meta">Consumir antes del ${new Date(l.until+'T12:00:00').toLocaleDateString('es-ES')}</div><div class="actions"><button class="btn small use">Colocar en semana</button><button class="btn small danger delete">Eliminar</button></div>`;c.querySelector('.use').onclick=()=>{selectedLeftoverSource={leftoverId:l.id,menuId:l.menuId};openLeftoverPlacement()};c.querySelector('.delete').onclick=()=>{state.leftovers=state.leftovers.filter(x=>x.id!==l.id);persist();renderAll()};el.appendChild(c)});if(!state.leftovers.length)el.innerHTML='<p>No hay sobras registradas.</p>'}
+function openLeftoverPlacement(){const start=mondayOf(state.weekOffset),choices=$('#slotChoices');choices.innerHTML='';for(let i=0;i<7;i++){const d=new Date(start);d.setDate(d.getDate()+i);['meal','dinner'].forEach(slot=>{const b=document.createElement('button');b.className='btn';b.textContent=`${d.toLocaleDateString('es-ES',{weekday:'short',day:'numeric'})} · ${slot==='meal'?'Comida':'Cena'}`;b.onclick=()=>{const k=keyFor(d,slot);if(!Array.isArray(state.plans[k]))state.plans[k]=state.plans[k]?[state.plans[k]]:[];state.plans[k].push({menuId:selectedLeftoverSource.menuId,done:false,fromLeftovers:true});state.leftovers=state.leftovers.filter(x=>x.id!==selectedLeftoverSource.leftoverId);persist('Sobras colocadas');slotDialog.close();renderAll()};choices.appendChild(b)})}slotDialog.showModal()}
+function renderShop(){
+ const el=$('#shopList');el.innerHTML='';
+ const items=[...automaticShoppingItems(),...manualShoppingItems()];
+ items.forEach(i=>{
+  const c=document.createElement('label');c.className='shop-item';
+  const detail=i.source==='auto'?(i.count>1?`<small class="meta">Necesario para ${i.count} menús</small>`:''):'';
+  c.innerHTML=`<input type="checkbox" ${i.done?'checked':''}><span style="flex:1;${i.done?'text-decoration:line-through;opacity:.55':''}"><strong>${i.name}</strong>${detail}</span><button class="btn small danger" title="Quitar de la lista">×</button>`;
+  const checkbox=c.querySelector('input');
+  if(i.source==='auto'){
+   checkbox.onchange=e=>{if(e.target.checked){const key=i.key;if(!state.shopDismissed.includes(key))state.shopDismissed.push(key);persist('Ingrediente marcado como disponible');renderShop()}else renderShop()};
+   c.querySelector('button').onclick=e=>{e.preventDefault();if(!state.shopDismissed.includes(i.key))state.shopDismissed.push(i.key);persist('Ingrediente quitado de la compra');renderShop()};
+  }else{
+   checkbox.onchange=e=>{i.done=e.target.checked;persist();renderShop()};
+   c.querySelector('button').onclick=e=>{e.preventDefault();state.shop=state.shop.filter(x=>x.id!==i.id);persist();renderShop()};
+  }
+  el.appendChild(c)
+ });
+ if(!items.length)el.innerHTML='<p>La lista de la compra está vacía. Añade menús con ingredientes a esta semana o incorpora un producto manualmente.</p>'
+}
+function renderIngredientDraft(){const el=$('#ingredientList');el.innerHTML='';draftIngredients.forEach((name,index)=>{const row=document.createElement('div');row.className='ingredient-item';row.innerHTML=`<span>${name}</span><button type="button" aria-label="Eliminar ingrediente">×</button>`;row.querySelector('button').onclick=()=>{draftIngredients.splice(index,1);renderIngredientDraft()};el.appendChild(row)})}
+function addDraftIngredient(){const input=$('#ingredientInput'),name=input.value.trim();if(!name)return;const exists=draftIngredients.some(x=>x.localeCompare(name,'es',{sensitivity:'base'})===0);if(!exists)draftIngredients.push(name);input.value='';renderIngredientDraft();input.focus()}
+function editMenu(id=null){const m=state.menus.find(x=>x.id===id);$('#menuDialogTitle').textContent=m?'Editar menú':'Nuevo menú';$('#menuId').value=m?.id||'';$('#menuName').value=m?.name||'';$('#menuType').value=m?.type||'both';$('#menuTime').value=m?.time||'';$('#menuNotes').value=m?.notes||'';$('#ingredientInput').value='';draftIngredients=[...(m?.ingredients||[])];renderIngredientDraft();menuDialog.showModal()}
+$('#menuForm').addEventListener('submit',e=>{e.preventDefault();const id=$('#menuId').value;const data={id:id||crypto.randomUUID(),name:$('#menuName').value.trim(),type:$('#menuType').value,time:$('#menuTime').value.trim(),ingredients:[...draftIngredients],notes:$('#menuNotes').value.trim()};if(!data.name)return;const idx=state.menus.findIndex(x=>x.id===id);idx>=0?state.menus[idx]=data:state.menus.push(data);persist();menuDialog.close();renderAll()});
+$('#addIngredientBtn').onclick=addDraftIngredient;$('#ingredientInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addDraftIngredient()}});$('#cancelMenuBtn').onclick=()=>menuDialog.close();
+$('#leftoverForm').addEventListener('submit',e=>{e.preventDefault();const servings=Number($('#leftoverServings').value)||1,until=$('#leftoverUntil').value;if(!until)return;state.leftovers.push({id:crypto.randomUUID(),menuId:selectedLeftoverSource.menuId,servings,until});const plans=Array.isArray(state.plans[selectedLeftoverSource.k])?state.plans[selectedLeftoverSource.k]:[];if(plans[selectedLeftoverSource.index])plans[selectedLeftoverSource.index].hasLeftovers=true;persist('Sobras registradas');leftoverDialog.close();renderAll()});
+$('#shopForm').addEventListener('submit',e=>{e.preventDefault();const name=$('#shopName').value.trim();if(!name)return;state.shop.push({id:crypto.randomUUID(),name,done:false,source:'manual'});$('#shopName').value='';persist();shopDialog.close();renderShop()});
+$('#addMenuBtn').onclick=$('#addMenuBtn2').onclick=()=>editMenu();$('#addShopBtn').onclick=()=>shopDialog.showModal();$('#prevWeek').onclick=()=>{state.weekOffset--;persist();renderWeek()};$('#nextWeek').onclick=()=>{state.weekOffset++;persist();renderWeek()};$('#saveBtn').onclick=()=>saveRemote();$('#refreshBtn').onclick=()=>loadRemote(true);
+$$('.nav button').forEach(b=>b.onclick=()=>{$$('.nav button').forEach(x=>x.classList.remove('active'));b.classList.add('active');$$('.panel').forEach(p=>p.classList.remove('active'));$('#'+b.dataset.panel).classList.add('active')});
+function applyDeviceLayout(){
+  const isSmallDevice = Math.min(window.screen.width, window.screen.height) <= 900;
+  document.documentElement.classList.toggle('small-device', isSmallDevice);
+}
+applyDeviceLayout();
+window.addEventListener('resize', applyDeviceLayout);
+window.addEventListener('orientationchange', applyDeviceLayout);
+window.addEventListener('beforeunload',()=>localStorage.setItem(KEY,JSON.stringify(state)));renderAll();loadRemote(false);
+</script>
+</body>
+</html>
