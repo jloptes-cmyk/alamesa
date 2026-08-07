@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f6efe5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="A la mesa">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="stylesheet" href="styles.css">
+  <title>A la mesa</title>
+</head>
+<body>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="brand"><h1>A la mesa</h1><p>Planifica, aprovecha y compra solo lo necesario</p></div>
+      <div class="header-actions">
+        <button id="alertsBtn" class="icon-btn alert-button" type="button" aria-label="Avisos">🔔<span id="alertCount" hidden>0</span></button>
+        <span id="saveStatus" class="status">Guardado</span>
+      </div>
+    </header>
+
+    <main>
+      <section id="weekPanel" class="panel active">
+        <div class="toolbar week-tools">
+          <button id="addMenuBtn" class="btn primary" type="button">+ Nuevo menú</button>
+          <button id="saveWeekTemplateBtn" class="btn" type="button">☆ Guardar semana</button>
+          <button id="autoWeekBtn" class="btn accent" type="button">✨ Generar semana</button>
+          <button id="undoBtn" class="btn ghost" type="button" disabled>↶ Deshacer</button>
+          <button id="refreshBtn" class="btn ghost" type="button">Actualizar</button>
+        </div>
+        <div id="autoProgress" class="unlock-card" hidden></div>
+        <div class="weeknav">
+          <button id="prevWeek" class="btn arrow" type="button" aria-label="Semana anterior">‹</button>
+          <h2 id="weekTitle"></h2>
+          <button id="nextWeek" class="btn arrow" type="button" aria-label="Semana siguiente">›</button>
+        </div>
+        <div id="days" class="days"></div>
+      </section>
+
+      <section id="menusPanel" class="panel">
+        <div class="section-title"><div><h2>Menús</h2><p>Tus platos, favoritos y etiquetas de variedad</p></div><button id="addMenuBtn2" class="btn primary" type="button">+ Añadir</button></div>
+        <div id="menuLibrary" class="card-grid"></div>
+      </section>
+
+      <section id="shopPanel" class="panel">
+        <div class="section-title"><div><h2>Compra</h2><p>Calculada con lo que ya tienes en casa</p></div><button id="clearCompletedBtn" class="btn" type="button">Ocultar completados</button></div>
+        <form id="quickShopForm" class="quick-add">
+          <input id="shopName" required placeholder="Añadir producto…" autocomplete="off">
+          <input id="shopQuantity" type="number" min="0" step="0.01" placeholder="Cant.">
+          <select id="shopUnit" aria-label="Unidad"><option value="">Unidad</option><option>ud</option><option>g</option><option>kg</option><option>ml</option><option>l</option><option>paquete</option></select>
+          <button class="btn primary" type="submit">Añadir</button>
+        </form>
+        <div id="shopSummary" class="info-strip"></div>
+        <div id="shopList" class="keep-list"></div>
+      </section>
+
+      <section id="inventoryPanel" class="panel">
+        <div class="section-title"><div><h2>Inventario</h2><p>Nevera, congelador y despensa</p></div></div>
+        <div class="segmented" id="inventoryTabs" role="tablist">
+          <button class="active" data-location="fridge" type="button">Nevera</button>
+          <button data-location="freezer" type="button">Congelador</button>
+          <button data-location="pantry" type="button">Despensa</button>
+          <button data-location="priority" type="button">Consumir primero</button>
+        </div>
+        <div class="toolbar">
+          <button id="addInventoryBtn" class="btn primary" type="button">+ Añadir producto</button>
+          <button id="scanInventoryBtn" class="btn" type="button">▣ Escanear código</button>
+          <button id="tipsBtn" class="btn" type="button">Consejos</button>
+        </div>
+        <div id="inventorySummary" class="info-strip"></div>
+        <div id="inventoryList" class="card-grid inventory-grid"></div>
+      </section>
+
+      <section id="morePanel" class="panel">
+        <div class="section-title"><div><h2>Más</h2><p>Sobras, plantillas, avisos e historial</p></div><button id="settingsBtn" class="btn" type="button">Ajustes</button></div>
+        <div class="subnav" id="moreTabs">
+          <button class="active" data-more="leftovers" type="button">Sobras</button>
+          <button data-more="templates" type="button">Plantillas</button>
+          <button data-more="alerts" type="button">Avisos</button>
+          <button data-more="history" type="button">Historial</button>
+        </div>
+        <div id="moreContent"></div>
+      </section>
+    </main>
+  </div>
+
+  <nav class="bottom-nav" aria-label="Navegación principal">
+    <button class="active" data-panel="weekPanel" type="button"><span>▦</span>Semana</button>
+    <button data-panel="menusPanel" type="button"><span>♨</span>Menús</button>
+    <button data-panel="shopPanel" type="button"><span>✓</span>Compra</button>
+    <button data-panel="inventoryPanel" type="button"><span>□</span>Inventario</button>
+    <button data-panel="morePanel" type="button"><span>•••</span>Más</button>
+  </nav>
+
+  <dialog id="menuDialog"><form id="menuForm" class="modal">
+    <div class="modal-head"><h2 id="menuDialogTitle">Nuevo menú</h2><button class="close" type="button" data-close="menuDialog">×</button></div>
+    <input id="menuId" type="hidden">
+    <div class="field"><label for="menuName">Nombre</label><input id="menuName" required placeholder="Ej. Albóndigas con arroz"></div>
+    <div class="form-row"><div class="field"><label for="menuType">Tipo habitual</label><select id="menuType"><option value="both">Comida y cena</option><option value="meal">Solo comida</option><option value="dinner">Solo cena</option></select></div><div class="field"><label for="menuTime">Tiempo</label><input id="menuTime" placeholder="30 min"></div></div>
+    <div class="field"><label>Ingredientes</label><div class="ingredient-entry"><input id="ingredientInput" placeholder="Producto"><input id="ingredientQuantity" type="number" min="0" step="0.01" placeholder="Cant."><select id="ingredientUnit"><option value="">Unidad</option><option>ud</option><option>g</option><option>kg</option><option>ml</option><option>l</option><option>paquete</option></select><button id="addIngredientBtn" class="btn" type="button">Añadir</button></div><div id="ingredientList" class="chips-list"></div></div>
+    <div class="field"><label for="menuTags">Alimento principal</label><select id="menuTags" multiple size="4"><option value="pollo">Pollo</option><option value="pavo">Pavo</option><option value="vacuno">Vacuno</option><option value="cerdo">Cerdo</option><option value="pescado">Pescado</option><option value="marisco">Marisco</option><option value="huevo">Huevo</option><option value="legumbres">Legumbres</option><option value="pasta">Pasta</option><option value="arroz">Arroz</option><option value="verduras">Verduras</option></select><small>Sirve para no repetir el mismo tipo de alimento en días seguidos.</small></div>
+    <div class="check-row"><label><input id="menuFavorite" type="checkbox"> Favorito</label><label><input id="menuNoSuggest" type="checkbox"> No sugerir automáticamente</label></div>
+    <div class="field"><label for="menuNotes">Notas</label><textarea id="menuNotes" rows="3"></textarea></div>
+    <div class="modal-actions"><button class="btn" type="button" data-close="menuDialog">Cancelar</button><button class="btn primary" type="submit">Guardar</button></div>
+  </form></dialog>
+
+  <dialog id="choiceDialog"><div class="modal"><div class="modal-head"><h2 id="choiceTitle">Elegir</h2><button class="close" type="button" data-close="choiceDialog">×</button></div><div id="choiceContent" class="choice-list"></div></div></dialog>
+
+  <dialog id="inventoryDialog"><form id="inventoryForm" class="modal">
+    <div class="modal-head"><h2 id="inventoryDialogTitle">Añadir producto</h2><button class="close" type="button" data-close="inventoryDialog">×</button></div>
+    <input id="inventoryId" type="hidden"><input id="inventoryImage" type="hidden"><input id="inventoryAllergens" type="hidden">
+    <div id="productPreview" class="product-preview"><img id="productPreviewImage" alt=""><div><strong id="productPreviewName"></strong><small id="productPreviewMeta"></small></div></div>
+    <div class="field"><label for="inventoryName">Producto</label><input id="inventoryName" required placeholder="Ej. Pechuga de pollo"></div>
+    <div class="form-row"><div class="field"><label for="inventoryBrand">Marca</label><input id="inventoryBrand"></div><div class="field"><label for="inventoryBarcode">Código</label><input id="inventoryBarcode" inputmode="numeric"></div></div>
+    <div class="form-row"><div class="field"><label for="inventoryLocation">Dónde se guarda</label><select id="inventoryLocation"><option value="fridge">Nevera</option><option value="freezer">Congelador</option><option value="pantry">Despensa</option></select></div><div class="field"><label for="inventoryCategory">Categoría</label><select id="inventoryCategory"></select></div></div>
+    <div class="form-row"><div class="field"><label for="inventoryQuantity">Cantidad</label><input id="inventoryQuantity" type="number" min="0.01" step="0.01" value="1" required></div><div class="field"><label for="inventoryUnit">Unidad</label><select id="inventoryUnit"><option value="ud">Unidades</option><option value="ración">Raciones</option><option value="paquete">Paquetes</option><option value="g">Gramos</option><option value="kg">Kilos</option><option value="ml">Mililitros</option><option value="l">Litros</option></select></div></div>
+    <div class="form-row"><div class="field"><label for="inventoryStoredAt">Fecha de guardado</label><input id="inventoryStoredAt" type="date" required></div><div class="field"><label for="inventoryExpiry">Caducidad/consumo preferente</label><input id="inventoryExpiry" type="date"></div></div>
+    <div class="form-row"><div class="field"><label for="inventoryOpenedAt">Fecha de apertura</label><input id="inventoryOpenedAt" type="date"></div><div id="qualityField" class="field"><label for="inventoryQualityDays">Calidad recomendada (días)</label><input id="inventoryQualityDays" type="number" min="1"></div></div>
+    <div class="field"><label for="inventoryNotes">Notas</label><textarea id="inventoryNotes" rows="2"></textarea></div>
+    <div id="categoryTip" class="tip-box"></div><div id="allergenWarning" class="warning-box" hidden></div>
+    <div class="modal-actions"><button class="btn" type="button" data-close="inventoryDialog">Cancelar</button><button class="btn primary" type="submit">Guardar</button></div>
+  </form></dialog>
+
+  <dialog id="scannerDialog"><div class="modal"><div class="modal-head"><h2>Escanear producto</h2><button class="close" type="button" id="closeScannerBtn">×</button></div><div id="reader" class="scanner"><video id="scannerVideo" playsinline muted></video><div class="scan-line"></div></div><p id="scannerStatus" class="muted">Preparando la cámara…</p><div class="field"><label for="barcodeInput">También puedes escribir el código</label><input id="barcodeInput" inputmode="numeric" autocomplete="off" placeholder="EAN-13"></div><div class="modal-actions"><button id="lookupBarcodeBtn" class="btn primary" type="button">Buscar producto</button></div></div></dialog>
+
+  <dialog id="placementDialog"><form id="placementForm" class="modal">
+    <div class="modal-head"><h2 id="placementTitle">Añadir a la semana</h2><button class="close" type="button" data-close="placementDialog">×</button></div>
+    <input id="placementItemId" type="hidden"><div class="field"><label for="placementDate">Día</label><input id="placementDate" type="date" required></div><div class="field"><label for="placementSlot">Momento</label><select id="placementSlot"><option value="meal">Comida</option><option value="dinner">Cena</option></select></div><div class="field"><label for="placementQuantity">Cantidad reservada</label><input id="placementQuantity" type="number" min="0.01" step="0.01" required></div><p id="placementAvailable" class="info-strip"></p><div class="modal-actions"><button class="btn" type="button" data-close="placementDialog">Cancelar</button><button class="btn primary" type="submit">Reservar</button></div>
+  </form></dialog>
+
+  <dialog id="consumeDialog"><form id="consumeForm" class="modal">
+    <div class="modal-head"><h2>Confirmar consumo</h2><button class="close" type="button" data-close="consumeDialog">×</button></div><input id="consumePlanKey" type="hidden"><input id="consumePlanId" type="hidden"><p id="consumeDescription"></p><div class="field"><label for="consumeQuantity">Cantidad realmente consumida</label><input id="consumeQuantity" type="number" min="0" step="0.01"></div><p class="muted">Escribe 0 si finalmente no se consumió. La cantidad no utilizada seguirá en el inventario.</p><div class="modal-actions"><button id="reprogramBtn" class="btn" type="button">Reprogramar</button><button class="btn primary" type="submit">Confirmar</button></div>
+  </form></dialog>
+
+  <dialog id="templateDialog"><form id="templateForm" class="modal"><div class="modal-head"><h2 id="templateTitle">Guardar plantilla</h2><button class="close" type="button" data-close="templateDialog">×</button></div><input id="templateType" type="hidden"><input id="templateDate" type="hidden"><div class="field"><label for="templateName">Nombre</label><input id="templateName" required placeholder="Ej. Semana fácil"></div><div class="modal-actions"><button class="btn" type="button" data-close="templateDialog">Cancelar</button><button class="btn primary" type="submit">Guardar</button></div></form></dialog>
+
+  <dialog id="autoDialog"><div class="modal wide-modal"><div class="modal-head"><div><h2>Propuesta de semana</h2><p>Bloquea lo que te guste y regenera el resto.</p></div><button class="close" type="button" data-close="autoDialog">×</button></div><div id="autoProposal" class="proposal"></div><div class="modal-actions wrap"><button id="regenerateBtn" class="btn" type="button">Regenerar sin cambiar bloqueados</button><button id="applyAutoAddBtn" class="btn" type="button">Añadir a lo existente</button><button id="applyAutoReplaceBtn" class="btn primary" type="button">Sustituir semana</button></div></div></dialog>
+
+  <dialog id="settingsDialog"><form id="settingsForm" class="modal"><div class="modal-head"><h2>Ajustes</h2><button class="close" type="button" data-close="settingsDialog">×</button></div><div class="field"><label for="allergenTerms">Alergias o intolerancias</label><input id="allergenTerms" placeholder="Ej. gluten, leche, frutos secos"><small>Separa los términos con comas.</small></div><div class="field"><label for="reminderTime">Hora de los recordatorios</label><input id="reminderTime" type="time" value="20:00"></div><div class="check-column"><label><input id="notifyThaw" type="checkbox"> Avisar para pasar alimentos a la nevera</label><label><input id="notifyExpiry" type="checkbox"> Avisar de caducidades y plazos de congelación</label><label><input id="notifyConfirm" type="checkbox"> Recordar confirmar consumos</label></div><button id="notificationPermissionBtn" class="btn" type="button">Permitir notificaciones del dispositivo</button><div class="modal-actions"><button class="btn primary" type="submit">Guardar ajustes</button></div></form></dialog>
+
+  <dialog id="tipsDialog"><div class="modal"><div class="modal-head"><h2>Consejos para conservar</h2><button class="close" type="button" data-close="tipsDialog">×</button></div><div id="tipsContent" class="tips-content"></div></div></dialog>
+
+  <dialog id="alertsDialog"><div class="modal"><div class="modal-head"><h2>Avisos</h2><button class="close" type="button" data-close="alertsDialog">×</button></div><div id="alertsDialogContent"></div></div></dialog>
+
+  <script src="vendor/html5-qrcode.min.js" defer></script>
+  <script src="app.js" defer></script>
+</body>
+</html>

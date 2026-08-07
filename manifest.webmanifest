@@ -1,0 +1,17 @@
+{
+  "name": "A la mesa",
+  "short_name": "A la mesa",
+  "description": "Planificador familiar de menús, inventario y compra",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5efe7",
+  "theme_color": "#f6efe5",
+  "lang": "es",
+  "orientation": "any",
+  "icons": [
+    {"src":"favicon-32.png","sizes":"32x32","type":"image/png"},
+    {"src":"apple-touch-icon.png","sizes":"180x180","type":"image/png"},
+    {"src":"icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+  ]
+}
